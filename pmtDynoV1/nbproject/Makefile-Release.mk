@@ -18,10 +18,10 @@ CC=avr-gcc
 CCC=avr-g++
 CXX=avr-g++
 FC=gfortran
-AS=as
+AS=avr-as
 
 # Macros
-CND_PLATFORM=GNU-AVR-Linux-x86
+CND_PLATFORM=GNU-AVR-Linux
 CND_DLIB_EXT=so
 CND_CONF=Release
 CND_DISTDIR=dist
@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/src/app.o \
+	${OBJECTDIR}/src/dht22.o \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/sys.o
 
@@ -64,17 +65,22 @@ ${CND_DISTDIR}/arduino.elf: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}
 	${LINK.c} -o ${CND_DISTDIR}/arduino.elf ${OBJECTFILES} ${LDLIBSOPTIONS} -mmcu=atmega328p -Wl,-Map=${CND_DISTDIR}/arduino.map,--cref
 
-${OBJECTDIR}/src/app.o: src/app.c 
+${OBJECTDIR}/src/app.o: src/app.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -Wall -s -DARDUINO_UNO_R3_ATMEGA328P -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/app.o src/app.c
 
-${OBJECTDIR}/src/main.o: src/main.c 
+${OBJECTDIR}/src/dht22.o: src/dht22.c
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -Wall -s -DARDUINO_UNO_R3_ATMEGA328P -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/dht22.o src/dht22.c
+
+${OBJECTDIR}/src/main.o: src/main.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -Wall -s -DARDUINO_UNO_R3_ATMEGA328P -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.c
 
-${OBJECTDIR}/src/sys.o: src/sys.c 
+${OBJECTDIR}/src/sys.o: src/sys.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -Wall -s -DARDUINO_UNO_R3_ATMEGA328P -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/sys.o src/sys.c
@@ -85,7 +91,6 @@ ${OBJECTDIR}/src/sys.o: src/sys.c
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/arduino.elf
 
 # Subprojects
 .clean-subprojects:

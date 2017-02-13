@@ -28,16 +28,11 @@
 // ...
 
 // Konstante, die im Flash abgelegt werden
-const char MAIN_WELCOME[] = "\n\rProgramm ?? ";
-const char MAIN_DATE[] = __DATE__;
-const char MAIN_TIME[] = __TIME__;
-
 
 int main (void)
 {
   sys_init();
   app_init();
-  printf("%s %s %s\n\r", MAIN_WELCOME, MAIN_DATE, MAIN_TIME);
   sys_newline();
 
   // Interrupt-System jetzt einschalten

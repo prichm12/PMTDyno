@@ -7,13 +7,13 @@ CND_BASEDIR=`pwd`
 CND_BUILDDIR=build
 CND_DISTDIR=dist
 # Release configuration
-CND_PLATFORM_Release=GNU-AVR-Linux-x86
+CND_PLATFORM_Release=GNU-AVR-Linux
 CND_ARTIFACT_DIR_Release=dist
 CND_ARTIFACT_NAME_Release=arduino.elf
 CND_ARTIFACT_PATH_Release=dist/arduino.elf
-CND_PACKAGE_DIR_Release=dist/Release/GNU-AVR-Linux-x86/package
-CND_PACKAGE_NAME_Release=prt2arduinoattmega328p.tar
-CND_PACKAGE_PATH_Release=dist/Release/GNU-AVR-Linux-x86/package/prt2arduinoattmega328p.tar
+CND_PACKAGE_DIR_Release=dist/Release/GNU-AVR-Linux/package
+CND_PACKAGE_NAME_Release=pmtdynov1.tar
+CND_PACKAGE_PATH_Release=dist/Release/GNU-AVR-Linux/package/pmtdynov1.tar
 #
 # include compiler specific variables
 #

@@ -1,20 +1,45 @@
 #ifndef APP_H_INCLUDED
 #define APP_H_INCLUDED
 
-// Deklaration Strukturvariablentyp
+// declarations
 
-struct App
+#define APP_UART_BUFFER_SIZE 64
+
+#define APP_SOT 2
+#define APP_EOT 3
+
+struct App_Uart
 {
-  uint8_t flags_u8;
+  uint8_t rxBuffer[APP_UART_BUFFER_SIZE];
+  uint8_t txBuffer[APP_UART_BUFFER_SIZE];
+  uint8_t recIndex;
+  uint8_t framePending;
+  uint8_t errCnt_recFrameTooLong;
+  uint8_t errCnt_recFrameWhilePending;
+  uint8_t errCnt_recFrameError;
 };
 
+struct App_Timer
+{
+  uint32_t motorRpm;
+  uint32_t shaftRpm;
+  uint32_t ovfCounter0;
+  uint32_t ovfCounter1;
+  uint32_t ovfCounter2;
+  uint8_t busy;
+};
+struct App
+{
+  struct App_Uart uart;
+  struct App_Timer timer;
+};
 
-// Deklaration Strukturvariablen
 extern volatile struct App app;
 
 
-// globale Defines
-#define APP_EVENT_0   0x01
+// defines
+
+#define APP_EVENT_FRAME_RECEIVED   0x01
 #define APP_EVENT_1   0x02
 #define APP_EVENT_2   0x04
 #define APP_EVENT_3   0x08
@@ -24,17 +49,11 @@ extern volatile struct App app;
 #define APP_EVENT_7   0x80
 
 
-// Funktionsdeklarationen
+// functions
+
 void app_init (void);
 void app_main (void);
 
-void app_task_1ms   (void);
-void app_task_2ms   (void);
-void app_task_4ms   (void);
-void app_task_8ms   (void);
-void app_task_16ms  (void);
-void app_task_32ms  (void);
-void app_task_64ms  (void);
-void app_task_128ms (void);
+void app_uart_isr (uint8_t b);
 
 #endif // APP_H_INCLUDED

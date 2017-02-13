@@ -19,7 +19,6 @@
 #define SYS_UART_UDR_IS_EMPTY (UCSR0A & (1<<UDRE0))
 #define SYS_UDR UDR0
 #define SYS_UART_RECEIVE_VECTOR USART_RX_vect
-#define SYS_TIMER0_VECTOR TIMER0_COMPA_vect
 #endif
 
 #ifdef SURE
@@ -49,14 +48,6 @@ void sys_init (void)
   memset((void *)&sys, 0, sizeof(sys));
  _delay_ms(150);
 #ifdef __AVR_ATmega328P__
-  // Timer 0 used in CTC mode (clear timer in compare match)
-  // Timer 0 used for task switching
-  OCR0A  = 149;            // TOV0 interrupt every 100us @ f=12MHz
-  TCCR0A = (1 << WGM01);   // CTC mode
-  TCCR0B = (1 << CS01);    // prescaler f=12MHz/8
-  TIMSK0 = (1 << OCIE0A);  // Timer Output Compare A Match Interrupt enabled
-  TIFR0  = (1 << OCF0A);   // clear Interrupt Request Bit
-
   // init UART-Interface (Atmega328 - USART0)
   UBRR0L = (F_CPU/GLOBAL_UART_BITRATE + 4)/8 - 1;
   UBRR0H = 0x00;
@@ -364,47 +355,5 @@ ISR (SYS_UART_RECEIVE_VECTOR)
   }
   lastChar = c;
 
-  sys.uart.rbuffer_u8[sys.uart.wpos_u8++] = c;
-  if (sys.uart.wpos_u8 >= GLOBAL_UART_RECBUFSIZE)
-    sys.uart.wpos_u8 = 0;
-  if (sys.uart.wpos_u8 == sys.uart.rpos_u8)
-  {
-    sys.uart.wpos_u8 == 0 ? sys.uart.wpos_u8 = GLOBAL_UART_RECBUFSIZE-1 : sys.uart.wpos_u8--;
-    sys.uart.errcnt_u8 = sys_inc8BitCnt(sys.uart.errcnt_u8);
-  }
-  sys.uart.rbuffer_u8[sys.uart.wpos_u8] = 0;
-}
-
-
-// Timer 0 Output/Compare Interrupt
-// called every 100us
-ISR (SYS_TIMER0_VECTOR)
-{
-  static uint8_t cnt100us = 0;
-  static uint8_t cnt500us = 0;
-  static uint8_t busy = 0;
-
-  cnt100us++;
-  if (cnt100us>=5)
-  {
-    cnt100us = 0;
-    cnt500us++;
-    if (busy)
-      sys.taskErr_u8 = sys_inc8BitCnt(sys.taskErr_u8);
-    else
-    {
-      busy = 1;
-      sei();
-      if      (cnt500us & 0x01) app_task_1ms();
-      else if (cnt500us & 0x02) app_task_2ms();
-      else if (cnt500us & 0x04) app_task_4ms();
-      else if (cnt500us & 0x08) app_task_8ms();
-      else if (cnt500us & 0x10) app_task_16ms();
-      else if (cnt500us & 0x20) app_task_32ms();
-      else if (cnt500us & 0x40) app_task_64ms();
-      else if (cnt500us & 0x80) app_task_128ms();
-      busy = 0;
-    }
-  }
-
+  app_uart_isr(c);
 }

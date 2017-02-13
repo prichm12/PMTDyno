@@ -6,7 +6,7 @@
 
 # Macros
 TOP=`pwd`
-CND_PLATFORM=GNU-AVR-Linux-x86
+CND_PLATFORM=GNU-AVR-Linux
 CND_CONF=Release
 CND_DISTDIR=dist
 CND_BUILDDIR=build
@@ -15,7 +15,7 @@ NBTMPDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tmp-packaging
 TMPDIRNAME=tmp-packaging
 OUTPUT_PATH=${CND_DISTDIR}/arduino.elf
 OUTPUT_BASENAME=arduino.elf
-PACKAGE_TOP_DIR=prt2arduinoattmega328p/
+PACKAGE_TOP_DIR=pmtdynov1/
 
 # Functions
 function checkReturnCode
@@ -60,15 +60,15 @@ mkdir -p ${NBTMPDIR}
 
 # Copy files and create directories and links
 cd "${TOP}"
-makeDirectory "${NBTMPDIR}/prt2arduinoattmega328p/bin"
+makeDirectory "${NBTMPDIR}/pmtdynov1/bin"
 copyFileToTmpDir "${OUTPUT_PATH}" "${NBTMPDIR}/${PACKAGE_TOP_DIR}bin/${OUTPUT_BASENAME}" 0755
 
 
 # Generate tar file
 cd "${TOP}"
-rm -f ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/prt2arduinoattmega328p.tar
+rm -f ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/pmtdynov1.tar
 cd ${NBTMPDIR}
-tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/prt2arduinoattmega328p.tar *
+tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/package/pmtdynov1.tar *
 checkReturnCode
 
 # Cleanup
