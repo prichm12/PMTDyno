@@ -161,7 +161,8 @@ void startRpmMeasure(uint32_t t0)
   app.timer.motorRpm = simBike--;
   app.timer.busy = 0;
 /*
-  startMeas0();
+  startMeas0(); 
+  
   startMeas1();
 */
   
