@@ -19,13 +19,7 @@
 //globale Strukturvariable, ueberall sichtbar
 volatile struct App app;
 
-
-void dht22_init (void)
-{
-  memset((void *)&app, 0, sizeof(app));
-}
-
-void dht22(uint8_t *tempHigh, uint8_t *tempLow, uint8_t *humidity)
+void dht22(int8_t *tempHigh, uint8_t *tempLow, uint8_t *humidity)
 {
   uint8_t bits[5];
 	uint8_t i,j = 0;

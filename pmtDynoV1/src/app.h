@@ -26,7 +26,7 @@ struct App_Timer
   uint32_t ovfCounter0;
   uint32_t ovfCounter1;
   uint32_t ovfCounter2;
-  uint8_t busy;
+  uint8_t busy ;
 };
 struct App
 {

@@ -13,7 +13,7 @@
 
 #include "app.h"
 #include "sys.h"
-
+#include "bmp180.h"
 // defines
 // ...
 
@@ -60,15 +60,44 @@ void addTimeToTxBuffer(uint32_t timestamp)
 }
 
 //--------------------------------------------------------
-
+void addSpeedToTxBuffer()
+{
+  char shaft[10] = "";
+  
+  if(app.timer.shaftRpm<1000)
+    snprintf(shaft,sizeof(shaft),"%d",(int)app.timer.shaftRpm);
+  else if(app.timer.shaftRpm<1000000)
+    snprintf(shaft,sizeof(shaft),"%d%03d",(int)(app.timer.shaftRpm/1000),(int)(app.timer.shaftRpm%1000));
+  else
+    snprintf(shaft,sizeof(shaft),"%d%03d%03d",(int)(app.timer.shaftRpm/1000000),(int)((app.timer.shaftRpm/1000)%1000),(int)(app.timer.shaftRpm%1000));
+  
+  snprintf((char *)app.uart.txBuffer,sizeof(app.uart.txBuffer),"%c%s:",APP_SOT,shaft);
+}
+//--------------------------------------------------------
 void addRpmsToTxBuffer()
 {
-  snprintf((char *)app.uart.txBuffer,sizeof(app.uart.txBuffer),"%c%d-%d-",APP_SOT,(int)app.timer.shaftRpm,(int)app.timer.motorRpm);
+  char moto[10] = "";
+  char shaft[10] = "";
+  
+  if(app.timer.motorRpm<1000)
+    snprintf(moto,sizeof(moto),"%d",(int)app.timer.motorRpm);
+  else if(app.timer.motorRpm<1000000)
+    snprintf(moto,sizeof(moto),"%d%03d",(int)(app.timer.motorRpm/1000),(int)(app.timer.motorRpm%1000));
+  else
+    snprintf(moto,sizeof(moto),"%d%03d%03d",(int)(app.timer.motorRpm/1000000),(int)((app.timer.motorRpm/1000)%1000),(int)(app.timer.motorRpm%1000));
+  if(app.timer.shaftRpm<1000)
+    snprintf(shaft,sizeof(shaft),"%d",(int)app.timer.shaftRpm);
+  else if(app.timer.shaftRpm<1000000)
+    snprintf(shaft,sizeof(shaft),"%d%03d",(int)(app.timer.shaftRpm/1000),(int)(app.timer.shaftRpm%1000));
+  else
+    snprintf(shaft,sizeof(shaft),"%d%03d%03d",(int)(app.timer.shaftRpm/1000000),(int)((app.timer.shaftRpm/1000)%1000),(int)(app.timer.shaftRpm%1000));
+  
+  snprintf((char *)app.uart.txBuffer,sizeof(app.uart.txBuffer),"%c%s:%s:",APP_SOT,shaft,moto);
 }
 
-void addConditionsToTxBuffer(uint8_t tempH,uint8_t tempL,uint8_t humidity,uint16_t airpreas)
+void addConditionsToTxBuffer(uint8_t tempH,uint8_t tempL,uint8_t humidity,char pressure[])
 {
-  snprintf((char *)app.uart.txBuffer,sizeof(app.uart.txBuffer),"%c%d.%d-%d-%d.%d=",APP_SOT,(int)tempH,(int)tempL,(int) humidity, (int) (airpreas/10),(int)(airpreas%10));
+  snprintf((char *)app.uart.txBuffer,sizeof(app.uart.txBuffer),"%c%d.%d:%d:%s=",APP_SOT,(int)tempH,(int)tempL,(int) humidity,  pressure);
 }
 //--------------------------------------------------------
 
@@ -114,31 +143,32 @@ uint16_t calculateCRC(uint16_t initial_crc, char *buffer,uint16_t length) //foun
   return crc;
 }
 //--------------------------------------------------------
-void getConditions()
+void getEcoSystem()
 {
-  uint8_t i = 0;
-  static uint8_t j = 0;
   uint16_t crc = 0;
 
-  uint8_t tempH;
+  int8_t tempH;
   uint8_t tempL;
   uint8_t humidity;
-  //include dht22 code
-  static uint16_t airPressure = 10056;
+  char pressure[10] = "";
   dht22(&tempH,&tempL,&humidity);
-  addConditionsToTxBuffer(tempH, tempL, humidity,airPressure++);
+  getBmp180Values(&tempH, &tempL,(char *)pressure, sizeof(pressure));
+  addConditionsToTxBuffer(tempH, tempL, humidity,pressure);
 
 /*
+
+  uint8_t i = 0;
+  static uint8_t j = 0;
   app.uart.txBuffer[i++] = APP_SOT;
 
   if(j==0)
   {
-    memcpy((char *)app.uart.txBuffer + strlen((char *)app.uart.txBuffer),"26.5-45-1005.5=",strlen("26.5-45-1005.5="));
+    memcpy((char *)app.uart.txBuffer + strlen((char *)app.uart.txBuffer),"26.5:45:1005.5=",strlen("26.5:45:1005.5="));
     j++;
   }
   else
   {
-    memcpy((char *)app.uart.txBuffer + strlen((char *)app.uart.txBuffer),"27.2-55-1007.4=",strlen("27.5-55-1007.4="));
+    memcpy((char *)app.uart.txBuffer + strlen((char *)app.uart.txBuffer),"27.2:55:1007.4=",strlen("27.5:55:1007.4="));
     j=0;
   }
 */
@@ -149,26 +179,53 @@ void getConditions()
 }
 
 //--------------------------------------------------------
+void startSpeedMeasure(uint32_t timestamp)
+{
+  uint16_t crc;
+  app.timer.busy = 1;
 
-void startRpmMeasure(uint32_t t0)
+
+/*
+  static uint32_t simShaft = 20000;
+
+  app.timer.shaftRpm = simShaft--;
+  app.timer.busy = 0;
+*/
+
+  startMeas1();
+
+
+  
+  while(app.timer.busy>0){}
+  addSpeedToTxBuffer();
+  addTimeToTxBuffer(timestamp);
+  crc = calculateCRC(0xffff,(char *)app.uart.txBuffer,strlen((char *)app.uart.txBuffer));
+  printf("%s%04x%c",(char *)app.uart.txBuffer,crc,APP_EOT);
+  
+  memset((char *)app.uart.txBuffer,0,strlen((char *)app.uart.txBuffer));
+}
+//--------------------------------------------------------
+void startRpmMeasure(uint32_t timestamp)
 {
   uint16_t crc;
   app.timer.busy = 2;
-  static uint32_t simBike = 25000;
-  static uint32_t simShaft = 20000;
-  
+
+/*
+  static uint32_t simBike = 10000;
+  static uint32_t simShaft = 3000;
+
   app.timer.shaftRpm = simShaft--;
   app.timer.motorRpm = simBike--;
   app.timer.busy = 0;
-/*
-  startMeas0(); 
-  
-  startMeas1();
 */
+
+
+  startMeas0();
+  startMeas1();
   
   while(app.timer.busy>0){}
   addRpmsToTxBuffer();
-  addTimeToTxBuffer(t0);
+  addTimeToTxBuffer(timestamp);
   crc = calculateCRC(0xffff,(char *)app.uart.txBuffer,strlen((char *)app.uart.txBuffer));
   printf("%s%04x%c",(char *)app.uart.txBuffer,crc,APP_EOT);
   
@@ -181,14 +238,18 @@ void app_main (void)
   
   if (sys_clearEvent(APP_EVENT_FRAME_RECEIVED))
   {
-    uint8_t i = 0;
     
-    
-    if(app.uart.rxBuffer[0] == 'r')
+    if(app.uart.rxBuffer[0] == 'm')
     {
-      getConditions();
+      uint32_t timestamp = getActualTime();
+      startRpmMeasure(timestamp);
     }
-    else if(app.uart.rxBuffer[0] == 's')
+    else if(app.uart.rxBuffer[0] == 'r')
+    {
+      uint32_t timestamp = getActualTime();
+      startSpeedMeasure(timestamp);
+    }
+    else if(app.uart.rxBuffer[0] == 's') 
     {
       //set timestamp to 0
       cli();
@@ -198,10 +259,19 @@ void app_main (void)
       sei();
       startRpmMeasure(0);
     }
-    else if(app.uart.rxBuffer[0] == 'm')
+    else if(app.uart.rxBuffer[0] == 'g')
     {
-      uint32_t timestamp = getActualTime();
-      startRpmMeasure(timestamp);
+      //set timestamp to 0
+      cli();
+      TCNT2 = 0;
+      app.timer.ovfCounter2 = 0;
+      TIMSK2 |= (1<<TOIE2); //timer overflow interrupt enabled
+      sei();
+      startSpeedMeasure(0);
+    }
+    else if(app.uart.rxBuffer[0] == 'e')
+    {
+      getEcoSystem();
     }
     
     cli();
@@ -234,8 +304,8 @@ ISR(INT0_vect)
     cli();
     TIMSK0 &=~ (1<<TOIE0); //timer overflow interrupt enabled
     EIMSK &=~ (1<<INT0); //External Interrupt Request 0 Enable
-    app.timer.shaftRpm = TCNT0;
-    app.timer.shaftRpm = (TCNT0+(app.timer.ovfCounter0*256))/2;
+    app.timer.motorRpm = TCNT0;
+    app.timer.motorRpm = (TCNT0+(app.timer.ovfCounter0*256))/2;
     edgeDetection0 = 0;
     app.timer.busy--;
     EICRA &=~ (1<<ISC00); //INT0 interrupt on rising edge(The rising edge on INT0 generates an interrupt 
@@ -275,7 +345,7 @@ ISR(TIMER1_CAPT_vect)
   {
     cli();
     edgeDetection1 = 0;
-    app.timer.motorRpm = (ICR1+app.timer.ovfCounter1*65536)/2;
+    app.timer.shaftRpm = (ICR1+app.timer.ovfCounter1*65536)/2;
     TCCR1B &=~ (1<<ICES1);
     TIMSK1 &=~ (1<<ICIE1) | (1<<TOIE1);
     sei();
@@ -293,6 +363,7 @@ ISR(TIMER2_OVF_vect)
 void app_uart_isr (uint8_t b)
 {
   //sys_log(__FILE__, __LINE__, sys_pid(), "uart_isr(0x%02x)", b);
+  
   if (app.uart.framePending)
   {
     app_incErrCnt(&app.uart.errCnt_recFrameWhilePending);

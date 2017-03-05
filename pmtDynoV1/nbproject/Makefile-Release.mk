@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/src/app.o \
+	${OBJECTDIR}/src/bmp180.o \
 	${OBJECTDIR}/src/dht22.o \
 	${OBJECTDIR}/src/main.o \
 	${OBJECTDIR}/src/sys.o
@@ -69,6 +70,11 @@ ${OBJECTDIR}/src/app.o: src/app.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -Wall -s -DARDUINO_UNO_R3_ATMEGA328P -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/app.o src/app.c
+
+${OBJECTDIR}/src/bmp180.o: src/bmp180.c
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -Wall -s -DARDUINO_UNO_R3_ATMEGA328P -std=c99 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/bmp180.o src/bmp180.c
 
 ${OBJECTDIR}/src/dht22.o: src/dht22.c
 	${MKDIR} -p ${OBJECTDIR}/src

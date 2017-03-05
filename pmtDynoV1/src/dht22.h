@@ -26,6 +26,6 @@
 
 //values
 
-void dht22(uint8_t *tempHigh, uint8_t *tempLow, uint8_t *humidityHigh);
+void dht22(int8_t *tempHigh, uint8_t *tempLow, uint8_t *humidityHigh);
 
 #endif // APP_H_INCLUDED
